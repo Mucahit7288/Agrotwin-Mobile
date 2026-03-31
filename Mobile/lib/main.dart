@@ -1,4 +1,3 @@
-// ignore_for_file: duplicate_ignore, curly_braces_in_flow_control_structures, deprecated_member_use
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,7 +23,6 @@ void main() {
   runApp(const AgroTwinBootstrap());
 }
 
-// ── Bootstrap — SharedPreferences yüklenmesini bekler ────────────────────────
 class AgroTwinBootstrap extends StatefulWidget {
   const AgroTwinBootstrap({super.key});
   @override
@@ -135,7 +133,6 @@ class _AgroTwinBootstrapState extends State<AgroTwinBootstrap> {
   }
 }
 
-// ── AgroTwinApp — AppState + MQTT oluşturur ────────────────────────────────────
 class AgroTwinApp extends StatefulWidget {
   final SharedPreferences prefs;
   const AgroTwinApp({super.key, required this.prefs});
@@ -168,16 +165,12 @@ class _AgroTwinAppState extends State<AgroTwinApp> {
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.light,
       theme: buildAppTheme(),
-      // _AppRouter tüm Login↔HomeShell geçiş animasyonunu yönetir
       home: _AppRouter(appState: _appState, mqtt: _mqtt),
     );
   }
 }
 
-// ── Geçiş Yöneticisi — Fade + Slide animasyonu ────────────────────────────────
-/// "Geliştirici" veya "Giriş Yap" butonuna basıldığında AppState.isLoggedIn
-/// değişir → AnimatedBuilder yeniden inşa eder → AnimatedSwitcher şık
-/// Fade+Slide animasyonuyla LoginPage → HomeShell geçişini sağlar.
+// GİRİŞ SAYFASI
 class _AppRouter extends StatelessWidget {
   final AppState appState;
   final MqttService mqtt;
@@ -216,9 +209,7 @@ class _AppRouter extends StatelessWidget {
   }
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-//  GİRİŞ SAYFASI
-// ═════════════════════════════════════════════════════════════════════════════
+// GİRİŞ SAYFASI
 class LoginPage extends StatefulWidget {
   final AppState state;
   const LoginPage({super.key, required this.state});
@@ -245,13 +236,12 @@ class _LoginPageState extends State<LoginPage> {
       _err = null;
     });
     final e = await widget.state.login(_email.text, _pass.text);
-    if (mounted)
-      // ignore: curly_braces_in_flow_control_structures
+    if (mounted) {
       setState(() {
         _loading = false;
         _err = e;
       });
-    // AppState.isLoggedIn = true olunca _AppRouter otomatik animasyonla geçiş yapar
+    }
   }
 
   InputDecoration _dec(String label) => InputDecoration(
@@ -278,7 +268,6 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             children: [
               const SizedBox(height: 24),
-              // ── Logo Alanı — şeffaf arka plan + Decorasyon ──────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
@@ -291,10 +280,9 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: Column(
                   children: [
-                    // Sembol logosu (şeffaf, büyütülmüş)
                     Image.asset(
                       kAssetLogoSymbol,
-                      height: kLogoSymbolLogin, // 160px
+                      height: kLogoSymbolLogin,
                       fit: BoxFit.contain,
                       filterQuality: FilterQuality.high,
                       errorBuilder: (_, _, _) => const Icon(
@@ -304,10 +292,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    // Yazı logosu (şeffaf, büyütülmüş)
                     Image.asset(
                       kAssetLogoWord,
-                      height: kLogoWordLogin, // 72px
+                      height: kLogoWordLogin,
                       fit: BoxFit.contain,
                       filterQuality: FilterQuality.high,
                       errorBuilder: (_, _, _) => const Text(
@@ -316,7 +303,7 @@ class _LoginPageState extends State<LoginPage> {
                           color: kTextPrimary,
                           fontWeight: FontWeight.w800,
                           fontSize: 48,
-                          letterSpacing: 2.0, // daha büyük
+                          letterSpacing: 2.0,
                         ),
                       ),
                     ),
@@ -351,7 +338,6 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  // Giriş Yap — animasyon _AppRouter tarafından otomatik tetiklenir
                   Expanded(
                     child: SizedBox(
                       height: 50,
@@ -383,7 +369,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // Geliştirici — state.developerLogin() → isLoggedIn=true → AnimatedSwitcher Fade+Slide
                   Expanded(
                     child: SizedBox(
                       height: 50,
@@ -431,9 +416,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-//  KAYIT SAYFASI
-// ═════════════════════════════════════════════════════════════════════════════
+// KAYIT SAYFASI
 class RegisterPage extends StatefulWidget {
   final AppState state;
   const RegisterPage({super.key, required this.state});
@@ -470,11 +453,12 @@ class _RegisterPageState extends State<RegisterPage> {
       phone: _phone.text,
     );
     if (e != null) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _err = e;
         });
+      }
       return;
     }
     await widget.state.login(_email.text, _pass.text);
@@ -555,9 +539,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-//  ANA SHELL — 5 sekmeli PageView navigasyonu
-// ═════════════════════════════════════════════════════════════════════════════
+// ANA SHELL — 5 sekmeli PageView navigasyonu
 class HomeShell extends StatefulWidget {
   final AppState appState;
   final MqttService mqtt;

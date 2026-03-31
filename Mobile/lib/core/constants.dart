@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 
-// ── Renkler ───────────────────────────────────────────────────────────────────
 const Color kGreen = Color(0xFF11994B);
 const Color kGreenLight = Color(0xFF2DBE6C);
 const Color kGreenDark = Color(0xFF0D7A3A);
@@ -16,18 +15,15 @@ const Color kCyan = Color(0xFF06B6D4);
 const Color kAmber = Color(0xFFF59E0B);
 const double kRadius = 16.0;
 
-// ── Asset Yolları ─────────────────────────────────────────────────────────────
 const String kAssetLogoWord = 'assets/logo_word_clean.png';
 const String kAssetLogoSymbol = 'assets/icon.png';
 
-// ── Logo Ölçüleri (BÜYÜTÜLDÜ — şeffaf arka plan ile bütünleşik görünüm) ──────
 const double kLogoSymbolLogin = 160.0; // Giriş ekranı sembol (büyütüldü)
 const double kLogoWordLogin = 72.0; // Giriş ekranı yazı logosu (büyütüldü)
 const double kLogoSymbolAppBar = 56.0; // Dashboard AppBar sembol  (eski: 42)
 const double kLogoWordAppBar = 40.0; // Dashboard AppBar yazı    (eski: 30)
 const double kLogoWordAiBar = 44.0; // AI Asistan AppBar yazı   (eski: 34)
 
-// ── Kart Dekorasyonu ──────────────────────────────────────────────────────────
 BoxDecoration get kCardDecoration => BoxDecoration(
   color: kCard,
   borderRadius: BorderRadius.circular(kRadius),
@@ -40,7 +36,6 @@ BoxDecoration get kCardDecoration => BoxDecoration(
   ],
 );
 
-// ── Uygulama Teması ───────────────────────────────────────────────────────────
 ThemeData buildAppTheme() => ThemeData(
   colorScheme: ColorScheme.fromSeed(
     seedColor: kGreen,

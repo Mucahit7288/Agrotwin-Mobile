@@ -59,7 +59,7 @@ class DashboardPage extends StatelessWidget {
       backgroundColor: kBg,
       body: CustomScrollView(
         slivers: [
-          // ── App Bar — şeffaf arka plan, büyük logo ─────────────────────────
+          // AppBar
           SliverAppBar(
             expandedHeight: 0,
             pinned: true,
@@ -124,7 +124,7 @@ class DashboardPage extends StatelessWidget {
               ],
             ),
           ),
-          // ── İçerik ────────────────────────────────────────────────────────
+          // İçerik
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             sliver: SliverList(
@@ -213,7 +213,6 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-// ── MQTT Durum Chip ───────────────────────────────────────────────────────────
 class _MqttStatusChip extends StatelessWidget {
   final bool connected;
   const _MqttStatusChip({required this.connected});
@@ -251,7 +250,6 @@ class _MqttStatusChip extends StatelessWidget {
   }
 }
 
-// ── Sağlık Gauge ─────────────────────────────────────────────────────────────
 class _HealthGauge extends StatelessWidget {
   const _HealthGauge();
 
@@ -367,7 +365,6 @@ class _InfoRow extends StatelessWidget {
   );
 }
 
-// ── Sensör Kartı ─────────────────────────────────────────────────────────────
 class _SensorCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -470,7 +467,6 @@ class _SensorCard extends StatelessWidget {
   }
 }
 
-// ── Sensör Detay Alt Sheet ────────────────────────────────────────────────────
 class _SensorDetailSheet extends StatelessWidget {
   final SensorAnalyticsKind kind;
   final SensorData sensor;
@@ -735,7 +731,6 @@ class _MiniStat extends StatelessWidget {
   }
 }
 
-// ── AI Karar Kutusu ───────────────────────────────────────────────────────────
 class _AiDecisionCard extends StatelessWidget {
   final SensorData sensor;
   const _AiDecisionCard({required this.sensor});
