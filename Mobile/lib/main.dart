@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: duplicate_ignore, curly_braces_in_flow_control_structures, deprecated_member_use
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -246,6 +246,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     final e = await widget.state.login(_email.text, _pass.text);
     if (mounted)
+      // ignore: curly_braces_in_flow_control_structures
       setState(() {
         _loading = false;
         _err = e;
