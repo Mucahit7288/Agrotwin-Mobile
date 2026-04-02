@@ -39,7 +39,7 @@ Proje iki ana klasörden oluşmaktadır:
 ## 👥 Ekip
 * **Muhammet Mücahit** - [GitHub Profilin](https://github.com/Mucahit7288)
 * **Arda Tekgöz** - [GitHub Profili](https://github.com/ArdaTekgoz)
-* **Hasan Recep Müslim**-[GitHub Profili](https://github.com/HasanMuslim)
+* **Hasan Recep Müslim**- [GitHub Profili](https://github.com/HasanMuslim)
 
 ---
 Bu Proje Turkcell Yarının Teknoloji Liderleri kapsamında geliştirilmiştir.
