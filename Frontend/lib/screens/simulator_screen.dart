@@ -1,4 +1,12 @@
 // ignore_for_file: deprecated_member_use
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SIMULATOR SCREEN  —  AgroTwin
+//
+//  ⚠  app_state.dart → SensorData sınıfına EKLENMESİ GEREKEN yeni alan:
+//      int? isikAnalog   (SensorLog.isikAnalog'dan atanır)
+// ═══════════════════════════════════════════════════════════════════════════
+
 import 'package:flutter/material.dart';
 import '../core/constants.dart';
 import '../core/app_state.dart';
@@ -54,7 +62,8 @@ class SimulatorPage extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Sol: Mevcut Durum
+
+                          // ── Sol: Mevcut Durum ──────────────────────────────
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -93,15 +102,34 @@ class SimulatorPage extends StatelessWidget {
                                   label: 'Su Sıcaklığı',
                                   value: state.sensorData.tSu != null
                                       ? '${state.sensorData.tSu!.toStringAsFixed(1)}°C'
-                                      : '—',
+                                      : 'N/A',
                                   icon: Icons.waves_rounded,
                                   color: kCyan,
+                                ),
+                                // ── Işık Analog (YENİ) ─────────────────────
+                                _SimStatusCard(
+                                  label: 'Işık Analog',
+                                  value: state.sensorData.isikAnalog != null
+                                      ? '${state.sensorData.isikAnalog}'
+                                      : 'N/A',
+                                  icon: Icons.light_mode_rounded,
+                                  color: kAmber,
+                                ),
+                                // ── Elektrik Fiyatı (YENİ) ─────────────────
+                                _SimStatusCard(
+                                  label: 'Elektrik',
+                                  value: state.sensorData.elektrikFiyati != null
+                                      ? '${state.sensorData.elektrikFiyati!.toStringAsFixed(2)} ₺'
+                                      : 'N/A',
+                                  icon: Icons.bolt_rounded,
+                                  color: kOrange,
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 12),
-                          // Sağ: Simülasyon Slider'ları
+
+                          // ── Sağ: Simülasyon Slider'ları ───────────────────
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -155,6 +183,8 @@ class SimulatorPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
+
+                    // ── Tahmini Sonuçlar ─────────────────────────────────────
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -230,56 +260,16 @@ class SimulatorPage extends StatelessWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          '✅ Simülasyon parametreleri uygulandı!',
-                        ),
-                        backgroundColor: kGreen,
-                        behavior: SnackBarBehavior.floating,
-                        margin: const EdgeInsets.fromLTRB(16, 0, 16, 90),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Simülasyonu Uygula',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kGreen,
-                    elevation: 4,
-                    shadowColor: kGreen.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Widget'lar
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _SimHeader extends StatelessWidget {
   final String label;
@@ -428,7 +418,12 @@ class _SimSlider extends StatelessWidget {
             trackHeight: 3,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
           ),
-          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+          child: Slider(
+            value: value,
+            min: min,
+            max: max,
+            onChanged: onChanged,
+          ),
         ),
       ],
     ),

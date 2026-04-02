@@ -16,11 +16,22 @@ double? metricValue(SensorAnalyticsKind k, SensorData s) {
     case SensorAnalyticsKind.suSeviye:
       final p = s.suSeviyePct;
       return p == null ? null : p * 100.0;
+    case SensorAnalyticsKind.isik:
+      return s.isikAnalog?.toDouble();
+    case SensorAnalyticsKind.elektrikFiyati:
+      return s.elektrikFiyati;
   }
 }
 
 /// Geçmiş seri yok; tek canlı ölçümü 24 noktada düz çizgi olarak gösterir (mock gürültü yok).
 List<FlSpot> spotsForMetric(SensorAnalyticsKind k, SensorData s) {
+  if (k == SensorAnalyticsKind.isik) {
+    return s.isikAnalog != null ? [FlSpot(0, s.isikAnalog!.toDouble())] : [];
+  }
+
+  if (k == SensorAnalyticsKind.elektrikFiyati) {
+    return s.elektrikFiyati != null ? [FlSpot(0, s.elektrikFiyati!)] : [];
+  }
   final v = metricValue(k, s);
   if (v == null) return [];
   return List.generate(24, (i) => FlSpot(i.toDouble(), v));
@@ -35,6 +46,15 @@ String sensorDurumMetni(SensorAnalyticsKind k, SensorData s) {
     return 'Bu metrik için henüz veri yok. MQTT bağlantısını ve sensör yayınını kontrol edin.';
   }
   switch (k) {
+    case SensorAnalyticsKind.isik:
+      return s.isikAnalog != null
+          ? 'Anlık analog değer: ${s.isikAnalog}. Hedef 500–3500 aralığında olmalı.'
+          : 'Işık sensöründen henüz veri gelmiyor.';
+
+    case SensorAnalyticsKind.elektrikFiyati:
+      return s.elektrikFiyati != null
+          ? 'Anlık fiyat: ${s.elektrikFiyati!.toStringAsFixed(2)} ₺. 6.5 ₺ üzeri pik saat.'
+          : 'Elektrik fiyatı verisi henüz alınamadı.';
     case SensorAnalyticsKind.ph:
       return 'pH hedef bantta tutulduğunda kök emilimi ve besin dengesi ideal olur.';
     case SensorAnalyticsKind.ortamSicaklik:

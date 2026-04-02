@@ -1,4 +1,9 @@
 // ignore_for_file: duplicate_ignore, curly_braces_in_flow_control_structures, deprecated_member_use
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DASHBOARD SCREEN  —  AgroTwin
+// ═══════════════════════════════════════════════════════════════════════════
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -8,9 +13,29 @@ import '../core/chart_helpers.dart';
 import '../core/sensor_ui.dart';
 import 'user_settings_screen.dart';
 
-// ═════════════════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────────────────
+//  Yardımcı formatlayıcılar (bu dosyaya özel)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Işık analog değerini (0–4095 Arduino ADC) okunabilir etikete çevirir.
+String _isikEtiketi(int v) {
+  if (v < 300) return 'Karanlık';
+  if (v < 1000) return 'Loş';
+  if (v < 2000) return 'Orta';
+  if (v < 3000) return 'İyi Işık';
+  return 'Parlak';
+}
+
+/// Elektrik fiyatı için kısa durum etiketi.
+String _fiyatDurum(double v) {
+  if (v < 4.0) return 'Ucuz saat ✓';
+  if (v < 6.5) return 'Normal fiyat';
+  return 'Pik saat ⚠';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  DASHBOARD PAGE
-// ═════════════════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────────────────
 class DashboardPage extends StatelessWidget {
   final AppState state;
   final void Function(SensorAnalyticsKind kind, {bool scrollToChart})
@@ -59,7 +84,7 @@ class DashboardPage extends StatelessWidget {
       backgroundColor: kBg,
       body: CustomScrollView(
         slivers: [
-          // AppBar
+          // ── AppBar ──────────────────────────────────────────────────────────
           SliverAppBar(
             expandedHeight: 0,
             pinned: true,
@@ -68,20 +93,18 @@ class DashboardPage extends StatelessWidget {
             elevation: 0,
             title: Row(
               children: [
-                // Sembol logosu — şeffaf arka plan, büyütülmüş
                 Image.asset(
                   kAssetLogoSymbol,
-                  height: kLogoSymbolAppBar, // 56px (eski 42px)
+                  height: kLogoSymbolAppBar,
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.high,
                   errorBuilder: (_, _, _) =>
                       Icon(Icons.eco_rounded, color: kGreen, size: 44),
                 ),
                 const SizedBox(width: 10),
-                // Yazı logosu — şeffaf arka plan, büyütülmüş
                 Image.asset(
                   kAssetLogoWord,
-                  height: kLogoWordAppBar, // 40px (eski 30px)
+                  height: kLogoWordAppBar,
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.high,
                   errorBuilder: (_, _, _) => const Text(
@@ -89,7 +112,7 @@ class DashboardPage extends StatelessWidget {
                     style: TextStyle(
                       color: kTextPrimary,
                       fontWeight: FontWeight.w800,
-                      fontSize: 30, // büyütüldü
+                      fontSize: 30,
                       letterSpacing: 0.3,
                     ),
                   ),
@@ -124,13 +147,18 @@ class DashboardPage extends StatelessWidget {
               ],
             ),
           ),
-          // İçerik
+
+          // ── İçerik ──────────────────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+
+                // Sistem Sağlığı Göstergesi
                 _HealthGauge(state: state),
                 const SizedBox(height: 20),
+
+                // ── Bölüm: Sensör Verileri ───────────────────────────────────
                 const Text(
                   'Sensör Verileri',
                   style: TextStyle(
@@ -140,6 +168,9 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+
+                // Tek birleşik 2×3 grid: 6 sensör kartı (4 eski + 2 yeni).
+                // childAspectRatio, spacing ve borderRadius hepsinde aynı.
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
@@ -148,9 +179,11 @@ class DashboardPage extends StatelessWidget {
                   mainAxisSpacing: 12,
                   childAspectRatio: 1.35,
                   children: [
+                    // ── Ortam Sıcaklığı ──────────────────────────────────────
                     _SensorCard(
                       icon: Icons.thermostat_rounded,
                       iconColor: kOrange,
+                      cardBg: Colors.orange.withOpacity(0.10),
                       label: 'Ortam Sıcaklığı',
                       value: fmtTempC(s.tOrtam),
                       sub: s.tOrtam == null
@@ -168,9 +201,11 @@ class DashboardPage extends StatelessWidget {
                         s,
                       ),
                     ),
+                    // ── Ortam Nemi ───────────────────────────────────────────
                     _SensorCard(
                       icon: Icons.water_drop_rounded,
                       iconColor: kBlue,
+                      cardBg: Colors.blue.withOpacity(0.08),
                       label: 'Ortam Nemi',
                       value: fmtPct0(s.hOrtam),
                       sub: s.hOrtam == null
@@ -188,9 +223,11 @@ class DashboardPage extends StatelessWidget {
                         s,
                       ),
                     ),
+                    // ── Su Sıcaklığı ─────────────────────────────────────────
                     _SensorCard(
                       icon: Icons.waves_rounded,
                       iconColor: kCyan,
+                      cardBg: Colors.orange.withOpacity(0.07),
                       label: 'Su Sıcaklığı',
                       value: fmtTempC(s.tSu),
                       sub: s.tSu == null
@@ -206,9 +243,11 @@ class DashboardPage extends StatelessWidget {
                         s,
                       ),
                     ),
+                    // ── Su Seviyesi ──────────────────────────────────────────
                     _SensorCard(
                       icon: Icons.opacity_rounded,
                       iconColor: kGreen,
+                      cardBg: Colors.blue.withOpacity(0.10),
                       label: 'Su Seviyesi',
                       value: fmtSuSeviyePct(s),
                       sub: fmtSuMesafe(s),
@@ -220,9 +259,115 @@ class DashboardPage extends StatelessWidget {
                         s,
                       ),
                     ),
+                    // ── Işık Yoğunluğu ───────────────────────────────────────
+                    _SensorCard(
+                      icon: Icons.wb_sunny_rounded,
+                      iconColor: kAmber,
+                      cardBg: Colors.amber.withOpacity(0.10),
+                      label: 'Işık Yoğunluğu',
+                      // Kural 1: null → '-', asla 'N/A'
+                      value: s.isikAnalog != null ? '${s.isikAnalog}' : '-',
+                      sub: s.isikAnalog == null
+                          ? (state.mqttConnected
+                                ? 'Sensör verisi yok'
+                                : 'MQTT bağlı değil')
+                          : _isikEtiketi(s.isikAnalog!),
+                      hasData: s.isikAnalog != null,
+                      ok: s.isikAnalog != null &&
+                          s.isikAnalog! >= 500 &&
+                          s.isikAnalog! <= 3500,
+                      onTap: () => _openSensorSheet(
+                        context,
+                        SensorAnalyticsKind.isik,
+                        s,
+                      ),
+                    ),
+                    // ── Elektrik Fiyatı ──────────────────────────────────────
+                    _SensorCard(
+                      icon: Icons.bolt_rounded,
+                      iconColor: const Color(0xFF9C27B0),
+                      cardBg: Colors.purple.withOpacity(0.07),
+                      label: 'Elektrik Fiyatı',
+                      // Kural 1: null → '-', asla 'N/A'
+                      value: s.elektrikFiyati != null
+                          ? '${s.elektrikFiyati!.toStringAsFixed(2)} ₺'
+                          : '-',
+                      sub: s.elektrikFiyati == null
+                          ? (state.mqttConnected
+                                ? 'Veri bekleniyor'
+                                : 'MQTT bağlı değil')
+                          : _fiyatDurum(s.elektrikFiyati!),
+                      hasData: s.elektrikFiyati != null,
+                      ok: s.elektrikFiyati != null && s.elektrikFiyati! < 6.5,
+                      onTap: () => _openSensorSheet(
+                        context,
+                        SensorAnalyticsKind.elektrikFiyati,
+                        s,
+                      ),
+                    ),
                   ],
                 ),
+
                 const SizedBox(height: 20),
+
+                // ── Bölüm: Röle & Karar Durumları ───────────────────────────
+                const Text(
+                  'Röle & Karar Durumları',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: kTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Backend\'den gelen son AI röle kararları.',
+                  style: TextStyle(fontSize: 12, color: kTextSecondary),
+                ),
+                const SizedBox(height: 12),
+
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 2.3,
+                  children: [
+                    _RoleCard(
+                      icon: Icons.water_rounded,
+                      iconColor: kBlue,
+                      label: 'Su Pompası',
+                      karar: s.pompaKarar,
+                      mqttConnected: state.mqttConnected,
+                    ),
+                    _RoleCard(
+                      icon: Icons.air_rounded,
+                      iconColor: kCyan,
+                      label: 'Fan Motoru',
+                      karar: s.fanKarar,
+                      mqttConnected: state.mqttConnected,
+                    ),
+                    _RoleCard(
+                      icon: Icons.local_fire_department_rounded,
+                      iconColor: kRed,
+                      label: 'Isıtıcı',
+                      karar: s.isiticiKarar,
+                      mqttConnected: state.mqttConnected,
+                    ),
+                    _RoleCard(
+                      icon: Icons.water_drop,
+                      iconColor: kOrange,
+                      label: 'Tahliye Valfi',
+                      karar: s.tahliyeKarar,
+                      mqttConnected: state.mqttConnected,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // ── AI Karar Kartı ───────────────────────────────────────────
                 _AiDecisionCard(state: state),
               ]),
             ),
@@ -233,6 +378,9 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  MQTT Durum Chip'i
+// ─────────────────────────────────────────────────────────────────────────────
 class _MqttStatusChip extends StatelessWidget {
   final bool connected;
   const _MqttStatusChip({required this.connected});
@@ -270,6 +418,9 @@ class _MqttStatusChip extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Sistem Sağlığı Göstergesi
+// ─────────────────────────────────────────────────────────────────────────────
 class _HealthGauge extends StatelessWidget {
   final AppState state;
   const _HealthGauge({required this.state});
@@ -286,11 +437,25 @@ class _HealthGauge extends StatelessWidget {
     c(s.tOrtam, (v) => v >= 22 && v <= 26);
     c(s.hOrtam, (v) => v >= 55 && v <= 75);
     c(s.tSu, (v) => v >= 18 && v <= 24);
+
     final p = s.suSeviyePct;
     if (p != null) {
       n++;
       if (p > 0.3) ok++;
     }
+
+    final isik = s.isikAnalog;
+    if (isik != null) {
+      n++;
+      if (isik >= 500 && isik <= 3500) ok++;
+    }
+
+    final fiyat = s.elektrikFiyati;
+    if (fiyat != null) {
+      n++;
+      if (fiyat < 6.5) ok++;
+    }
+
     if (n == 0) return 0;
     return ok / n;
   }
@@ -304,9 +469,7 @@ class _HealthGauge extends StatelessWidget {
     final mqtt = state.mqttConnected;
     final has = s.hasAnyReading;
     final frac = has ? _healthFraction(s).clamp(0.0, 1.0) : 0.0;
-    final ring = !mqtt
-        ? kRed
-        : (!has ? kOrange : kGreen);
+    final ring = !mqtt ? kRed : (!has ? kOrange : kGreen);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -376,10 +539,7 @@ class _HealthGauge extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _InfoRow(
-                  icon: Icons.eco_rounded,
-                  text: state.seciliRecete,
-                ),
+                _InfoRow(icon: Icons.eco_rounded, text: state.seciliRecete),
                 const SizedBox(height: 4),
                 _InfoRow(
                   icon: Icons.schedule_rounded,
@@ -418,9 +578,15 @@ class _InfoRow extends StatelessWidget {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Sensör Kartı
+//  [cardBg] → sensör türüne özgü pastel arka plan rengi (Kural 2).
+//  Değer null iken 'N/A' veya 'Yok' yerine sadece '-' gösterilir (Kural 1).
+// ─────────────────────────────────────────────────────────────────────────────
 class _SensorCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
+  final Color cardBg;
   final String label, value, sub;
   final bool hasData;
   final bool ok;
@@ -429,6 +595,7 @@ class _SensorCard extends StatelessWidget {
   const _SensorCard({
     required this.icon,
     required this.iconColor,
+    required this.cardBg,
     required this.label,
     required this.value,
     required this.sub,
@@ -441,7 +608,21 @@ class _SensorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final inner = Container(
       padding: const EdgeInsets.all(14),
-      decoration: kCardDecoration,
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(kRadius),
+        border: Border.all(
+          color: iconColor.withOpacity(0.18),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -450,7 +631,7 @@ class _SensorCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.12),
+                  color: iconColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: iconColor, size: 18),
@@ -458,7 +639,10 @@ class _SensorCard extends StatelessWidget {
               const Spacer(),
               if (!hasData)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: kTextSecondary.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(6),
@@ -471,8 +655,9 @@ class _SensorCard extends StatelessWidget {
                         color: kTextSecondary,
                       ),
                       const SizedBox(width: 3),
+                      // Kural 1: 'Yok' yerine '—'
                       Text(
-                        'Veri yok',
+                        '—',
                         style: TextStyle(
                           fontSize: 9,
                           color: kTextSecondary,
@@ -484,15 +669,22 @@ class _SensorCard extends StatelessWidget {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: ok ? kGreen.withOpacity(0.1) : kRed.withOpacity(0.1),
+                    color: ok
+                        ? kGreen.withOpacity(0.12)
+                        : kRed.withOpacity(0.10),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        ok ? Icons.check_circle_rounded : Icons.warning_rounded,
+                        ok
+                            ? Icons.check_circle_rounded
+                            : Icons.warning_rounded,
                         size: 10,
                         color: ok ? kGreen : kRed,
                       ),
@@ -535,6 +727,7 @@ class _SensorCard extends StatelessWidget {
         ],
       ),
     );
+
     if (onTap == null) return inner;
     return Material(
       color: Colors.transparent,
@@ -549,6 +742,101 @@ class _SensorCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Röle Durum Kartı
+// ─────────────────────────────────────────────────────────────────────────────
+class _RoleCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final bool? karar;
+  final bool mqttConnected;
+
+  const _RoleCard({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.karar,
+    required this.mqttConnected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasData = karar != null;
+    final isOn = karar == true;
+
+    final badgeColor = hasData
+        ? (isOn ? kGreen : kTextSecondary)
+        : kTextSecondary;
+
+    // Kural 1: veri yokken '—' göster
+    final badgeText = hasData
+        ? (isOn ? 'ON' : 'OFF')
+        : '—';
+
+    final badgeBg = hasData
+        ? (isOn
+            ? kGreen.withOpacity(0.12)
+            : Colors.grey.withOpacity(0.10))
+        : Colors.grey.withOpacity(0.08);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: kCardDecoration,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: hasData && isOn
+                  ? iconColor.withOpacity(0.15)
+                  : Colors.grey.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              color: hasData && isOn ? iconColor : kTextSecondary,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: kTextPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: badgeBg,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              badgeText,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: badgeColor,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Sensör Detay Bottom Sheet
+//  Tüm SensorAnalyticsKind değerleri (isik + elektrikFiyati dahil) desteklenir.
+// ─────────────────────────────────────────────────────────────────────────────
 class _SensorDetailSheet extends StatelessWidget {
   final SensorAnalyticsKind kind;
   final SensorData sensor;
@@ -575,12 +863,15 @@ class _SensorDetailSheet extends StatelessWidget {
       mx = 0;
       avg = 0;
     }
+
     final title = switch (kind) {
       SensorAnalyticsKind.ph => 'pH',
       SensorAnalyticsKind.ortamSicaklik => 'Ortam Sıcaklığı',
       SensorAnalyticsKind.ortamNem => 'Ortam Nemi',
       SensorAnalyticsKind.suSicaklik => 'Su Sıcaklığı',
       SensorAnalyticsKind.suSeviye => 'Su Seviyesi',
+      SensorAnalyticsKind.isik => 'Işık Yoğunluğu',
+      SensorAnalyticsKind.elektrikFiyati => 'Elektrik Fiyatı',
     };
     final unit = switch (kind) {
       SensorAnalyticsKind.ph => '',
@@ -588,6 +879,8 @@ class _SensorDetailSheet extends StatelessWidget {
       SensorAnalyticsKind.ortamNem => '%',
       SensorAnalyticsKind.suSicaklik => '°C',
       SensorAnalyticsKind.suSeviye => '%',
+      SensorAnalyticsKind.isik => '',
+      SensorAnalyticsKind.elektrikFiyati => ' ₺',
     };
     final color = switch (kind) {
       SensorAnalyticsKind.ph => kGreen,
@@ -595,6 +888,8 @@ class _SensorDetailSheet extends StatelessWidget {
       SensorAnalyticsKind.ortamNem => kBlue,
       SensorAnalyticsKind.suSicaklik => kCyan,
       SensorAnalyticsKind.suSeviye => kGreenDark,
+      SensorAnalyticsKind.isik => kAmber,
+      SensorAnalyticsKind.elektrikFiyati => const Color(0xFF9C27B0),
     };
     final (minY, maxY) = switch (kind) {
       SensorAnalyticsKind.ph => (5.0, 7.5),
@@ -602,7 +897,10 @@ class _SensorDetailSheet extends StatelessWidget {
       SensorAnalyticsKind.ortamNem => (35.0, 95.0),
       SensorAnalyticsKind.suSicaklik => (15.0, 30.0),
       SensorAnalyticsKind.suSeviye => (0.0, 100.0),
+      SensorAnalyticsKind.isik => (0.0, 4095.0),
+      SensorAnalyticsKind.elektrikFiyati => (0.0, 15.0),
     };
+
     return DraggableScrollableSheet(
       initialChildSize: 0.58,
       minChildSize: 0.42,
@@ -844,6 +1142,9 @@ class _MiniStat extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  AI Karar Kartı
+// ─────────────────────────────────────────────────────────────────────────────
 class _AiDecisionCard extends StatelessWidget {
   final AppState state;
   const _AiDecisionCard({required this.state});
@@ -855,6 +1156,9 @@ class _AiDecisionCard extends StatelessWidget {
     if (!s.hasAnyReading) {
       return 'MQTT bağlı ancak henüz ölçüm alınmadı. Sensörün `agrotwin/sensorler` konusuna veri gönderdiğinden emin olun.';
     }
+    if (s.tahliyeKarar == true) {
+      return 'Backend tahliye kararı verdi. Drenaj valfi aktif — su seviyesini ve rezervuarı kontrol edin.';
+    }
     if (s.tOrtam != null && s.tOrtam! < 20) {
       return 'Ortam sıcaklığı düşük (${s.tOrtam!.toStringAsFixed(1)}°C). Isıtıcıyı değerlendirin.';
     }
@@ -863,6 +1167,12 @@ class _AiDecisionCard extends StatelessWidget {
     }
     if (s.hOrtam != null && s.hOrtam! > 80) {
       return 'Ortam nemi yüksek (%${s.hOrtam!.toStringAsFixed(0)}). Havalandırmayı artırın.';
+    }
+    if (s.isikAnalog != null && s.isikAnalog! < 300) {
+      return 'Işık yoğunluğu çok düşük (${s.isikAnalog}). LED aydınlatmayı kontrol edin.';
+    }
+    if (s.elektrikFiyati != null && s.elektrikFiyati! > 6.5) {
+      return 'Pik elektrik saati (${s.elektrikFiyati!.toStringAsFixed(2)} ₺). Yüksek güç tüketimini ertelemeyi düşünün.';
     }
     return 'Son ölçümlere göre acil uyarı yok; hedef aralıkları izlemeye devam edin.';
   }
@@ -916,7 +1226,10 @@ class _AiDecisionCard extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),

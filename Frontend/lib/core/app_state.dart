@@ -3,13 +3,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Canlı sensör ölçümleri. Alanlar yalnızca MQTT/JSON’da geldiyse dolu olur; sahte varsayılan yok.
+/// Canlı sensör ölçümleri. Alanlar yalnızca MQTT/JSON'da geldiyse dolu olur; sahte varsayılan yok.
 class SensorData {
   final double? tOrtam;
   final double? hOrtam;
   final double? tSu;
   final double? suMesafe;
   final int? isikAnalog;
+  final double? elektrikFiyati;
+  final bool? pompaKarar;
+  final bool? fanKarar;
+  final bool? isiticiKarar;
+  final bool? tahliyeKarar;
 
   const SensorData({
     this.tOrtam,
@@ -17,6 +22,11 @@ class SensorData {
     this.tSu,
     this.suMesafe,
     this.isikAnalog,
+    this.elektrikFiyati,
+    this.pompaKarar,
+    this.fanKarar,
+    this.isiticiKarar,
+    this.tahliyeKarar,
   });
 
   static const SensorData empty = SensorData();
@@ -29,9 +39,8 @@ class SensorData {
       isikAnalog != null;
 
   /// Rezervuar derinliği 25 cm varsayımı (sadece [suMesafe] varken anlamlı).
-  double? get suSeviyePct => suMesafe == null
-      ? null
-      : ((25.0 - suMesafe!) / 25.0).clamp(0.0, 1.0);
+  double? get suSeviyePct =>
+      suMesafe == null ? null : ((25.0 - suMesafe!) / 25.0).clamp(0.0, 1.0);
 
   double? get isikPct =>
       isikAnalog == null ? null : (isikAnalog! / 4095.0).clamp(0.0, 1.0);
@@ -60,26 +69,67 @@ class SensorData {
     return null;
   }
 
+  static bool? _readBool(Map<String, dynamic> json, List<String> keys) {
+    for (final k in keys) {
+      if (!json.containsKey(k)) continue;
+      final v = json[k];
+      if (v == null) continue;
+      if (v is bool) return v;
+      final s = v.toString().toLowerCase();
+      if (s == 'true' || s == '1') return true;
+      if (s == 'false' || s == '0') return false;
+    }
+    return null;
+  }
+
   factory SensorData.fromJson(Map<String, dynamic> json) {
     return SensorData(
       tOrtam: _readDouble(json, ['tOrtam', 't_ortam', 'T_ortam']),
       hOrtam: _readDouble(json, ['hOrtam', 'h_ortam', 'H_ortam']),
       tSu: _readDouble(json, ['tSu', 't_su', 'T_su']),
-      suMesafe: _readDouble(
-        json,
-        ['suMesafeCm', 'su_mesafe_cm', 'Su_Mesafe_cm', 'suMesafe'],
-      ),
-      isikAnalog: _readInt(
-        json,
-        ['isikAnalog', 'isik_analog', 'Isik_Analog'],
-      ),
+      suMesafe: _readDouble(json, [
+        'suMesafeCm',
+        'su_mesafe_cm',
+        'Su_Mesafe_cm',
+        'suMesafe',
+      ]),
+      isikAnalog: _readInt(json, ['isikAnalog', 'isik_analog', 'Isik_Analog']),
+      elektrikFiyati: _readDouble(json, [
+        'elektrikFiyati',
+        'elektrik_fiyati',
+        'ElektrikFiyati',
+      ]),
+      pompaKarar: _readBool(json, ['pompaKarar', 'pompa_karar']),
+      fanKarar: _readBool(json, ['fanKarar', 'fan_karar']),
+      isiticiKarar: _readBool(json, ['isiticiKarar', 'isitici_karar']),
+      tahliyeKarar: _readBool(json, ['tahliyeKarar', 'tahliye_karar']),
     );
   }
 }
 
-enum SensorAnalyticsKind { ph, ortamSicaklik, ortamNem, suSicaklik, suSeviye }
+/// Analitik ekranında seçilebilen metrik türleri.
+///
+/// ⚠ SIRALAMA KESİNLİKLE DEĞİŞTİRİLMEMELİDİR — [index] üzerinden eşleşme sağlanır.
+/// Yeni değerler yalnızca SONA eklenir.
+enum SensorAnalyticsKind {
+  ph,             // index 0
+  ortamSicaklik,  // index 1
+  ortamNem,       // index 2
+  suSicaklik,     // index 3
+  suSeviye,       // index 4
+  isik,  // index 5  ← YENİ: Işık Yoğunluğu (0–4095 ADC)
+  elektrikFiyati, // index 6  ← YENİ: Anlık Elektrik Fiyatı (₺/kWh)
+}
+
 
 class AppState extends ChangeNotifier {
+  bool tahliyeOn = false;
+
+  void toggleTahliye() {
+    tahliyeOn = !tahliyeOn;
+    notifyListeners();
+  }
+
   AppState(this._prefs) {
     _loadAuth();
   }

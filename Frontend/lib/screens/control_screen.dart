@@ -1,4 +1,19 @@
 // ignore_for_file: deprecated_member_use
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CONTROL SCREEN  —  AgroTwin
+//
+//  ⚠  app_state.dart → AppState sınıfına EKLENMESİ GEREKEN yeni üyeler:
+//      bool tahliyeOn       (varsayılan: false)
+//      void toggleTahliye() (pompaOn mantığıyla aynı şekilde implement edilir)
+//
+//  ⚠  app_state.dart → SensorData sınıfına EKLENMESİ GEREKEN yeni alanlar:
+//      bool? pompaKarar    (SensorLog.pompaKarar'dan atanır)
+//      bool? fanKarar      (SensorLog.fanKarar'dan atanır)
+//      bool? isiticiKarar  (SensorLog.isiticiKarar'dan atanır)
+//      bool? tahliyeKarar  (SensorLog.tahliyeKarar'dan atanır)
+// ═══════════════════════════════════════════════════════════════════════════
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../core/constants.dart';
@@ -20,7 +35,8 @@ class KontrolPage extends StatelessWidget {
         builder: (context, _) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
           children: [
-            // Mod Seçici
+
+            // ── Mod Seçici ───────────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
               decoration: kCardDecoration,
@@ -85,7 +101,8 @@ class KontrolPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // EPİAŞ Grafiği
+
+            // ── EPİAŞ Grafiği ────────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
               decoration: kCardDecoration,
@@ -142,7 +159,8 @@ class KontrolPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Eyleyici Kontrolü
+
+            // ── Eyleyici Kontrolü ────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
               decoration: kCardDecoration,
@@ -158,7 +176,8 @@ class KontrolPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // LED
+
+                  // LED Işıklar
                   _ActuatorTile(
                     icon: Icons.light_rounded,
                     iconColor: kAmber,
@@ -197,8 +216,10 @@ class KontrolPage extends StatelessWidget {
                         ],
                       ),
                     ),
+
                   const Divider(height: 1),
-                  // Su Pompası — MQTT'ye komut gönderir
+
+                  // Su Pompası
                   _ActuatorTile(
                     icon: Icons.water_rounded,
                     iconColor: kBlue,
@@ -210,8 +231,10 @@ class KontrolPage extends StatelessWidget {
                       mqtt.publish('pompa', state.pompaOn ? 'ON' : 'OFF');
                     },
                   ),
+
                   const Divider(height: 1),
-                  // Fan — MQTT'ye komut gönderir
+
+                  // Fan
                   _ActuatorTile(
                     icon: Icons.air_rounded,
                     iconColor: kCyan,
@@ -223,8 +246,10 @@ class KontrolPage extends StatelessWidget {
                       mqtt.publish('fan', state.fanOn ? 'ON' : 'OFF');
                     },
                   ),
+
                   const Divider(height: 1),
-                  // Isıtıcı — MQTT'ye komut gönderir
+
+                  // Isıtıcı
                   _ActuatorTile(
                     icon: Icons.local_fire_department_rounded,
                     iconColor: kRed,
@@ -233,14 +258,111 @@ class KontrolPage extends StatelessWidget {
                     value: state.isiticiOn,
                     onChanged: (_) {
                       state.toggleIsitici();
-                      mqtt.publish('isitici', state.isiticiOn ? 'ON' : 'OFF');
+                      mqtt.publish(
+                        'isitici',
+                        state.isiticiOn ? 'ON' : 'OFF',
+                      );
+                    },
+                  ),
+
+                  const Divider(height: 1),
+
+                  // Tahliye Valfi  (YENİ — Java: tahliye_karar)
+                  _ActuatorTile(
+                    icon: Icons.water_drop,
+                    iconColor: kOrange,
+                    label: 'Tahliye Valfi',
+                    sub: state.tahliyeOn ? 'Açık (Tahliye Yapılıyor)' : 'Kapalı',
+                    value: state.tahliyeOn,
+                    onChanged: (_) {
+                      state.toggleTahliye();
+                      mqtt.publish(
+                        'tahliye',
+                        state.tahliyeOn ? 'ON' : 'OFF',
+                      );
                     },
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            // Bitki Reçetesi Seçimi
+
+            // ── Backend'den Gelen Son Röle Kararları (YENİ) ─────────────────
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: kCardDecoration,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: kGreen.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: const Icon(
+                          Icons.memory_rounded,
+                          color: kGreen,
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Backend\'den Son AI Kararları',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: kTextPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Son sensör log kaydındaki AI röle kararları. '
+                    'Manuel modda bu kararlar uygulanmaz.',
+                    style: TextStyle(fontSize: 11, color: kTextSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 14),
+                  _BackendRoleRow(
+                    icon: Icons.water_rounded,
+                    iconColor: kBlue,
+                    label: 'Su Pompası',
+                    karar: state.sensorData.pompaKarar,
+                    mqttConnected: state.mqttConnected,
+                  ),
+                  const Divider(height: 16),
+                  _BackendRoleRow(
+                    icon: Icons.air_rounded,
+                    iconColor: kCyan,
+                    label: 'Fan Motoru',
+                    karar: state.sensorData.fanKarar,
+                    mqttConnected: state.mqttConnected,
+                  ),
+                  const Divider(height: 16),
+                  _BackendRoleRow(
+                    icon: Icons.local_fire_department_rounded,
+                    iconColor: kRed,
+                    label: 'Isıtıcı',
+                    karar: state.sensorData.isiticiKarar,
+                    mqttConnected: state.mqttConnected,
+                  ),
+                  const Divider(height: 16),
+                  _BackendRoleRow(
+                    icon: Icons.water_drop,
+                    iconColor: kOrange,
+                    label: 'Tahliye Valfi',
+                    karar: state.sensorData.tahliyeKarar,
+                    mqttConnected: state.mqttConnected,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Bitki Reçetesi Seçimi ────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
               decoration: kCardDecoration,
@@ -340,6 +462,108 @@ class KontrolPage extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Backend Röle Satırı  (YENİ — "Son AI Kararları" bölümünde kullanılır)
+// ─────────────────────────────────────────────────────────────────────────────
+class _BackendRoleRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+
+  /// null → veri yok  /  true → ON  /  false → OFF
+  final bool? karar;
+  final bool mqttConnected;
+
+  const _BackendRoleRow({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.karar,
+    required this.mqttConnected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasData = karar != null;
+    final isOn = karar == true;
+
+    final badgeColor = hasData
+        ? (isOn ? kGreen : kTextSecondary)
+        : kTextSecondary;
+
+    final badgeText = hasData
+        ? (isOn ? 'ON' : 'OFF')
+        : (mqttConnected ? 'Veri Yok' : '—');
+
+    final badgeBg = hasData
+        ? (isOn ? kGreen.withOpacity(0.12) : Colors.grey.withOpacity(0.10))
+        : Colors.grey.withOpacity(0.08);
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: hasData && isOn
+                ? iconColor.withOpacity(0.13)
+                : Colors.grey.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: hasData && isOn ? iconColor : kTextSecondary,
+            size: 18,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: kTextPrimary,
+                ),
+              ),
+              Text(
+                hasData
+                    ? (isOn ? 'Backend kararı: aktif' : 'Backend kararı: pasif')
+                    : 'Backend kararı henüz alınmadı',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: hasData && isOn ? kGreen : kTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: badgeBg,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            badgeText,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: badgeColor,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Mod İpucu
+// ─────────────────────────────────────────────────────────────────────────────
 class _ModeHint extends StatelessWidget {
   final Color color;
   final String text;
@@ -364,6 +588,9 @@ class _ModeHint extends StatelessWidget {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Mod Butonu
+// ─────────────────────────────────────────────────────────────────────────────
 class _ModeBtn extends StatelessWidget {
   final int index, selected;
   final String label;
@@ -408,6 +635,9 @@ class _ModeBtn extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Eyleyici Tile
+// ─────────────────────────────────────────────────────────────────────────────
 class _ActuatorTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -474,36 +704,18 @@ class _ActuatorTile extends StatelessWidget {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  EPİAŞ Grafiği
+// ─────────────────────────────────────────────────────────────────────────────
 class _EpiasChart extends StatelessWidget {
   const _EpiasChart();
 
   @override
   Widget build(BuildContext context) {
     final prices = [
-      3.2,
-      2.8,
-      2.5,
-      2.4,
-      2.6,
-      3.8,
-      5.2,
-      6.8,
-      7.1,
-      6.5,
-      5.9,
-      5.2,
-      4.8,
-      4.5,
-      4.9,
-      5.8,
-      7.2,
-      8.1,
-      7.8,
-      7.1,
-      5.9,
-      4.8,
-      3.9,
-      3.2,
+      3.2, 2.8, 2.5, 2.4, 2.6, 3.8, 5.2, 6.8,
+      7.1, 6.5, 5.9, 5.2, 4.8, 4.5, 4.9, 5.8,
+      7.2, 8.1, 7.8, 7.1, 5.9, 4.8, 3.9, 3.2,
     ];
     return SizedBox(
       height: 90,
@@ -570,6 +782,9 @@ class _EpiasChart extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  EPİAŞ Açıklama
+// ─────────────────────────────────────────────────────────────────────────────
 class _EpiasLegend extends StatelessWidget {
   final Color color;
   final String label;
@@ -588,7 +803,10 @@ class _EpiasLegend extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 5),
-      Text(label, style: const TextStyle(fontSize: 11, color: kTextSecondary)),
+      Text(
+        label,
+        style: const TextStyle(fontSize: 11, color: kTextSecondary),
+      ),
     ],
   );
 }

@@ -1,17 +1,45 @@
 /// Spring Boot + Jackson genelde **camelCase** JSON üretir; MQTT yükleri eski
 /// `T_ortam` anahtarlarını kullanabilir — [fromJson] ikisini de kabul eder.
+///
+/// ── Güncelleme Özeti (Java Entity ile Uyum) ─────────────────────────────────
+///   • isikAnalog  : double? → **int?**  (Java: @JsonProperty("Isik_Analog") Integer)
+///   • pompaKarar  : bool?  (_bool() ON/OFF string parse eder)
+///   • fanKarar    : bool?
+///   • isiticiKarar: bool?
+///   • tahliyeKarar: bool?  (Java: @JsonProperty("tahliye_karar") String)
 class SensorLog {
   final int? id;
   final String? timestamp;
+
+  /// @JsonProperty("T_ortam")
   final double? tOrtam;
+
+  /// @JsonProperty("H_ortam")
   final double? hOrtam;
+
+  /// @JsonProperty("T_su")
   final double? tSu;
+
+  /// @JsonProperty("Su_Mesafe_cm")
   final double? suMesafeCm;
-  final double? isikAnalog;
+
+  /// @JsonProperty("Isik_Analog") — Java'da Integer → Flutter'da int?
+  /// (Önceden double? idi — DÜZELTİLDİ)
+  final int? isikAnalog;
+
+  /// @JsonProperty("elektrik_fiyati")
   final double? elektrikFiyati;
+
+  /// @JsonProperty("pompa_karar") — Java String (ON/OFF) → bool? via _bool()
   final bool? pompaKarar;
+
+  /// @JsonProperty("fan_karar")
   final bool? fanKarar;
+
+  /// @JsonProperty("isitici_karar")
   final bool? isiticiKarar;
+
+  /// @JsonProperty("tahliye_karar")
   final bool? tahliyeKarar;
 
   const SensorLog({
@@ -29,7 +57,17 @@ class SensorLog {
     this.tahliyeKarar,
   });
 
+  // ── Dönüştürücü yardımcılar ────────────────────────────────────────────────
+
   static int? _id(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString());
+  }
+
+  /// Integer alanlar için (Isik_Analog).
+  static int? _int(dynamic v) {
     if (v == null) return null;
     if (v is int) return v;
     if (v is num) return v.toInt();
@@ -42,7 +80,7 @@ class SensorLog {
     return double.tryParse(v.toString());
   }
 
-  /// ON/OFF, 0/1, bool — backend bazen string karar döner.
+  /// ON/OFF, 0/1, bool, "TRUE"/"FALSE" — backend String karar gönderebilir.
   static bool? _bool(dynamic v) {
     if (v == null) return null;
     if (v is bool) return v;
@@ -53,31 +91,52 @@ class SensorLog {
     return null;
   }
 
+  // ── fromJson ───────────────────────────────────────────────────────────────
+  /// Anahtar önceliği: camelCase → snake_case → Java @JsonProperty değeri.
   factory SensorLog.fromJson(Map<String, dynamic> json) {
     return SensorLog(
       id: _id(json['id']),
       timestamp: json['timestamp']?.toString(),
+
       tOrtam: _dbl(json['tOrtam'] ?? json['t_ortam'] ?? json['T_ortam']),
       hOrtam: _dbl(json['hOrtam'] ?? json['h_ortam'] ?? json['H_ortam']),
       tSu: _dbl(json['tSu'] ?? json['t_su'] ?? json['T_su']),
+
       suMesafeCm: _dbl(
-        json['suMesafeCm'] ?? json['su_mesafe_cm'] ?? json['Su_Mesafe_cm'],
+        json['suMesafeCm'] ??
+            json['su_mesafe_cm'] ??
+            json['Su_Mesafe_cm'],
       ),
-      isikAnalog: _dbl(
-        json['isikAnalog'] ?? json['isik_analog'] ?? json['Isik_Analog'],
+
+      // Java: Integer Isik_Analog → _int kullanıyoruz (önceki _dbl hatalıydı)
+      isikAnalog: _int(
+        json['isikAnalog'] ??
+            json['isik_analog'] ??
+            json['Isik_Analog'],
       ),
-      elektrikFiyati: _dbl(json['elektrikFiyati'] ?? json['elektrik_fiyati']),
+
+      elektrikFiyati: _dbl(
+        json['elektrikFiyati'] ?? json['elektrik_fiyati'],
+      ),
+
+      // Java: String pompa_karar (ON/OFF) → bool
       pompaKarar: _bool(json['pompaKarar'] ?? json['pompa_karar']),
       fanKarar: _bool(json['fanKarar'] ?? json['fan_karar']),
+
+      // backend'de "isitiiciKarar" yazım hatası da destekleniyor
       isiticiKarar: _bool(
         json['isiticiKarar'] ??
             json['isitiiciKarar'] /* backend yazım hatası */ ??
             json['isitici_karar'],
       ),
-      tahliyeKarar: _bool(json['tahliyeKarar'] ?? json['tahliye_karar']),
+
+      tahliyeKarar: _bool(
+        json['tahliyeKarar'] ?? json['tahliye_karar'],
+      ),
     );
   }
 
+  // ── toJson ─────────────────────────────────────────────────────────────────
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -95,6 +154,7 @@ class SensorLog {
     };
   }
 
+  // ── copyWith ───────────────────────────────────────────────────────────────
   SensorLog copyWith({
     int? id,
     String? timestamp,
@@ -102,7 +162,7 @@ class SensorLog {
     double? hOrtam,
     double? tSu,
     double? suMesafeCm,
-    double? isikAnalog,
+    int? isikAnalog, // ← int? (önceden double? idi)
     double? elektrikFiyati,
     bool? pompaKarar,
     bool? fanKarar,
@@ -128,5 +188,8 @@ class SensorLog {
   @override
   String toString() =>
       'SensorLog(id: $id, timestamp: $timestamp, '
-      'tOrtam: $tOrtam, hOrtam: $hOrtam, tSu: $tSu)';
+      'tOrtam: $tOrtam, hOrtam: $hOrtam, tSu: $tSu, '
+      'isikAnalog: $isikAnalog, elektrikFiyati: $elektrikFiyati, '
+      'pompa: $pompaKarar, fan: $fanKarar, '
+      'isitici: $isiticiKarar, tahliye: $tahliyeKarar)';
 }

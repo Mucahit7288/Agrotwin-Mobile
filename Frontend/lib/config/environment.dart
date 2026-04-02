@@ -15,6 +15,7 @@ class Environment {
   // TODO: Backend developer buraya API endpoints ekleyecek
   // static const String backendApiUrl = 'http://localhost:8080';
   // static const String backendApiVersion = 'v1';
+  static const String baseUrl = "http://10.0.2.2:8080/api/v1";
 
   // App Configuration
   static const String appName = 'AgroTwin';
